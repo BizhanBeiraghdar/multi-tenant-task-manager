@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using MultiTenantTaskManager.Data;
+using MultiTenantTaskManager.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,10 +11,25 @@ builder.Services.AddSwaggerGen();
 //Add PostgreSQL  with Entity Framework Core
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Add Schema Service
+builder.Services.AddScoped<TenantSchemaService>();
 builder.Services.AddHttpContextAccessor();
 
 // Enable controllers
 builder.Services.AddControllers();
+
+// Add CORS policy
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll",
+        builder =>
+        {
+            builder.AllowAnyOrigin()
+                   .AllowAnyMethod()
+                   .AllowAnyHeader();
+        });
+});
 
 var app = builder.Build();
 
@@ -25,6 +41,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseRouting();
+app.UseCors("AllowAll");
+app.UseAuthorization();
 
 // Use controllers
 app.MapControllers();

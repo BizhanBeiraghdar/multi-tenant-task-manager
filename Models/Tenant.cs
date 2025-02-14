@@ -4,6 +4,6 @@
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        public int DatabaseSchema { get; set; } // Schema for each tenant
+        public string DatabaseSchema { get; set; } // Schema for each tenant
     }
 }
