@@ -1,0 +1,48 @@
+# Ignore Visual Studio files
+.vscode/
+*.user
+*.suo
+*.ncb
+*.sdf
+*.pdb
+*.opendb
+*.cache
+*.log
+*.bak
+*.tmp
+
+# Ignore Visual Studio indexing files
+*.vsidx
+*.v2
+
+# Ignore Visual Studio workspace state files
+VSWorkspaceState.json
+
+# Ignore Visual Studio user settings
+.vs/
+*.wsuo
+
+
+# Ignore Visual Studio UI layout files
+DocumentLayout.json
+DocumentLayout.backup.json
+
+# Ignore build files
+bin/
+obj/
+*.exe
+*.dll
+*.app
+*.pdb
+
+# Ignore migrations (if you don't want to track them)
+Migrations/
+
+# Ignore dependencies
+node_modules/
+wwwroot/lib/
+.env
+
+# Ignore system files
+.DS_Store
+Thumbs.db
