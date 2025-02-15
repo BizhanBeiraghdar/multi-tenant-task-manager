@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using MultiTenantTaskManager.Data;
+using MultiTenantTaskManager.Interfaces;
 using MultiTenantTaskManager.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,8 +13,9 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Add Schema Service
-builder.Services.AddScoped<TenantSchemaService>();
+// Register TenantService as a scoped service so that each request gets its own instance.
+builder.Services.AddScoped<ITenantService, TenantService>();
+
 builder.Services.AddHttpContextAccessor();
 
 // Enable controllers

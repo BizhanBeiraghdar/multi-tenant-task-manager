@@ -26,33 +26,14 @@ namespace MultiTenantTaskManager.Controllers
         public async Task<IActionResult> RegisterTenant([FromBody] Tenant tenantRequest)
         {
             if (string.IsNullOrWhiteSpace(tenantRequest.Name))
-            {
                 return BadRequest("Tenant name is required.");
-            }
 
-            // Generate schema name dynamically
-            string schemaName = $"tenant_{tenantRequest.Name.ToLower().Replace(" ", "_")}";
-
-            // Check if schema already exists
-            if (await _context.Tenants.AnyAsync(t => t.DatabaseSchema == schemaName))
-            {
-                return Conflict("Tenant already exists.");
-            }
-
-            // Create new schema for the tenant
-            await _context.Database.ExecuteSqlRawAsync($"CREATE SCHEMA IF NOT EXISTS \"{schemaName}\"");
-
-            // Save tenant details in the tenants table
-            var newTenant = new Tenant
-            {
-                Name = tenantRequest.Name,
-                DatabaseSchema = schemaName
-            };
-
-            _context.Tenants.Add(newTenant);
+            // Create a new tenant
+            tenantRequest.Id = Guid.NewGuid();
+            _context.Tenants.Add(tenantRequest);
             await _context.SaveChangesAsync();
 
-            return Ok(new { Message = "Tenant registered successfully", Schema = schemaName });
+            return Ok(new { Message = "Tenant registered successfully", TenantId = tenantRequest.Id });
         }
     }
 }

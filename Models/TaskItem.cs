@@ -1,10 +1,20 @@
-﻿namespace MultiTenantTaskManager.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace MultiTenantTaskManager.Models
 {
     public class TaskItem
     {
         public int Id { get; set; }
+
+        [Required]
+        public Guid TenantId { get; set; }
+
+        [Required]
+        [MaxLength(255)]
         public string Title { get; set; }
-        public string Status { get; set; } = "Pending";
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public string Description { get; set; }
+
+        public bool IsCompleted { get; set; } = false;
     }
 }

@@ -1,35 +1,45 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using MultiTenantTaskManager.Interfaces;
 using MultiTenantTaskManager.Models;
 
 namespace MultiTenantTaskManager.Data
 {
     public class ApplicationDbContext : DbContext
     {
-        private readonly string _tenantSchema;
+        private readonly ITenantService _tenantService;
 
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, IHttpContextAccessor httpContextAccessor)
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, ITenantService tenantService)
             : base(options)
         {
-            // Get tenant schema from request headers (default to 'public' if not provided)
-            if (!string.IsNullOrEmpty(httpContextAccessor.HttpContext?.Request.Headers["X-Tenant-Schema"].ToString()))
-            {
-                _tenantSchema = httpContextAccessor.HttpContext?.Request.Headers["X-Tenant-Schema"].ToString();
-            }
-            else
-            {
-                _tenantSchema = "public";
-            }
+            _tenantService = tenantService;
         }
 
+        // DbSets for our models
         public DbSet<Tenant> Tenants { get; set; }
         public DbSet<TaskItem> Tasks { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Tenant>().ToTable("tenants", schema: "public");
+            base.OnModelCreating(modelBuilder);
 
-            // Map TaskItem to a dynamic schema (multi-tenancy)
-            modelBuilder.Entity<TaskItem>().ToTable("tasks", schema: _tenantSchema);
+            // Tenant data (the Tenants table) remains in the public schema (no filtering needed)
+            modelBuilder.Entity<Tenant>().ToTable("tenants");
+
+            modelBuilder.Entity<TaskItem>(entity =>
+            {
+                // Tasks will be in the public schema (or if using dynamic multi-tenancy, the default schema).
+                entity.ToTable("tasks");
+
+                // Global query filter to ensure each query only returns data for the current tenant.
+                entity.HasQueryFilter(t => t.TenantId == _tenantService.CurrentTenantId);
+
+                // Configure TenantId as a foreign key.
+                // If Tenant has a navigation property (e.g., public ICollection<TaskItem> Tasks), you can change WithMany().
+                entity.HasOne<Tenant>()
+                      .WithMany()
+                      .HasForeignKey(t => t.TenantId)
+                      .IsRequired();
+            });
         }
     }
 }
