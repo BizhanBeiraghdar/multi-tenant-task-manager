@@ -1,10 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using MultiTenantTaskManager.Interfaces;
 using MultiTenantTaskManager.Models;
 
 namespace MultiTenantTaskManager.Data
 {
-    public class ApplicationDbContext : DbContext
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         private readonly ITenantService _tenantService;
 
@@ -17,6 +18,7 @@ namespace MultiTenantTaskManager.Data
         // DbSets for our models
         public DbSet<Tenant> Tenants { get; set; }
         public DbSet<TaskItem> Tasks { get; set; }
+        public DbSet<ApplicationUser> ApplicationUsers { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -39,6 +41,15 @@ namespace MultiTenantTaskManager.Data
                       .WithMany()
                       .HasForeignKey(t => t.TenantId)
                       .IsRequired();
+            });
+
+            modelBuilder.Entity<ApplicationUser>(entity => {
+                entity.ToTable("applicationUser");
+                entity.HasOne<Tenant>()
+                  .WithMany()
+                  .HasForeignKey(t => t.TenantId)
+                  .IsRequired();
+                entity.HasIndex(u => new { u.TenantId, u.Email }).IsUnique();
             });
         }
     }
